@@ -1,0 +1,115 @@
+// Staybnb data model.
+// SQLite is used for zero-setup local development. To move to Postgres, change
+// `provider` to "postgresql" and point DATABASE_URL at your database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  bio          String?
+  isHost       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  listings Listing[]
+  bookings Booking[]
+  reviews  Review[]
+}
+
+model Listing {
+  id             String   @id @default(cuid())
+  hostId         String
+  host           User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  propertyType   String
+  city           String
+  country        String
+  address        String?
+  lat            Float?
+  lng            Float?
+  pricePerNight  Int // minor units (cents)
+  cleaningFee    Int      @default(0)
+  currency       String   @default("USD")
+  maxGuests      Int
+  bedrooms       Int
+  beds           Int
+  bathrooms      Float
+  amenities      String   @default("[]") // JSON array of amenity keys
+  instantBook    Boolean  @default(true)
+  minNights      Int      @default(1)
+  maxAdvanceDays Int      @default(365)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  images   ListingImage[]
+  bookings Booking[]
+  reviews  Review[]
+
+  @@index([city])
+  @@index([country])
+  @@index([pricePerNight])
+}
+
+model ListingImage {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int     @default(0)
+
+  @@index([listingId, position])
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  guestId     String
+  guest       User     @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  checkIn     DateTime // UTC midnight of the check-in date
+  checkOut    DateTime // UTC midnight of the check-out date (exclusive)
+  guests      Int
+  nights      Int
+  subtotal    Int
+  cleaningFee Int
+  serviceFee  Int
+  total       Int
+  currency    String   @default("USD")
+  status      String   @default("CONFIRMED") // CONFIRMED | CANCELLED | COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  review Review?
+
+  @@index([listingId, checkIn, checkOut])
+  @@index([guestId])
+  @@index([status])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([listingId])
+}

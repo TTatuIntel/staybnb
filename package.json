@@ -1,0 +1,29 @@
+{
+  "name": "staybnb",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Staybnb - book stays in real time, or months ahead. Web app + API, mobile-ready.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev -w @staybnb/api\" \"npm run dev -w @staybnb/web\"",
+    "dev:api": "npm run dev -w @staybnb/api",
+    "dev:web": "npm run dev -w @staybnb/web",
+    "build": "npm run build -w @staybnb/api && npm run build -w @staybnb/web",
+    "start": "concurrently -n api,web -c cyan,magenta \"npm run start -w @staybnb/api\" \"npm run start -w @staybnb/web\"",
+    "db:setup": "npm run db:push -w @staybnb/api && npm run db:seed -w @staybnb/api",
+    "db:push": "npm run db:push -w @staybnb/api",
+    "db:seed": "npm run db:seed -w @staybnb/api",
+    "db:studio": "npm run db:studio -w @staybnb/api",
+    "lint": "npm run lint -w @staybnb/web",
+    "typecheck": "npm run typecheck -w @staybnb/api && npm run typecheck -w @staybnb/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
